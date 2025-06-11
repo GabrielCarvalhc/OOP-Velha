@@ -1,193 +1,212 @@
 package Main;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
 
 
-// Aluno: Gabriel Pereira de Carvalho 20241370012
+
+//Aluno: Gabriel Pereira de Carvalho 20241370012
 
 
-/* aqui é a classe que implemeta toda a lógica principal do jogo da velha */
+/** aqui temos a telajogo improtando da classe JFRAME e incializando a classe externa do jogo da velha principal
+ Inciei um vetor de 9 botoes, JLabel para informações de mensagens ao usuário, O JCombox para selecionar os simbolos dos usuarios
+O JRadio botton para escolher o modo do jogo e o nivel de dificuldade da máquina e o JPanel para mostrar o nível
+ de inteligencia da máquina ( fácil ou dificil )
 
+**/
 
-public class JogoDaVelha {
-	// variações possíveis de combinações para vencer o jogo em formato de dicionário
-    private final String[] ResultadoVencedor = {"012", "345", "678", "036", "147", "258", "048", "246"};
-    private String[] celulas; // aqui representa as noves posições do tabuleiro
-    private String[] simbolos; // aqui vai representar os símbolos das jogada que irá aparecer no tabuleiro [ do jogador 1, e do jogador 2/máquina
-    private LinkedHashMap<Integer, String> historico; // histórico de jogadas
-    private int qtdJogadas; // inicializador e o contador de jogadas feitas
-    private int nivelIa; // Nível de inteligência da máquina (1=fácil, 2=difícil)
-    private boolean contraMaquina; // lógica boleana para indicar se é jogador ou máquina
+public class TelaJogo extends JFrame {
+    private static final long serialVersionUID = 1L;
     
     
-    /* construtor do modo jogador vs jogador ( sem máquina */
+    private JogoDaVelha jogo;
+    private JButton[] botoes = new JButton[9];
+    private JLabel lblInfo;
+    private JComboBox<String> cbSimbolo1, cbSimbolo2;
+    private JRadioButton rbJogador, rbMaquina;
+    private JRadioButton rbNivelBaixo, rbNivelAlto;
+    private JPanel pnlNivel;
     
-    public JogoDaVelha(String simbolo1, String simbolo2) {
-        this.celulas = new String[9];
-        this.simbolos = new String[2];
-        this.historico = new LinkedHashMap<>();
-        this.qtdJogadas = 0;
-        this.contraMaquina = false;
+    public TelaJogo() {
+        super("Jogo da Velha");
+        configurarJanela();
+        inicializarComponentes();
+    }
+    
+    private void configurarJanela() {
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(400, 500);
+        setLocationRelativeTo(null);
+        setLayout(new BorderLayout());
+    }
+    
+    private void inicializarComponentes() {
+        // Painel de configuração
+        JPanel pnlConfig = new JPanel();
+        pnlConfig.setLayout(new BoxLayout(pnlConfig, BoxLayout.Y_AXIS));
         
-        this.simbolos[0] = simbolo1;
-        this.simbolos[1] = simbolo2; // lógica implementada para garantir que os jogadores passem pro construtor de maneira correta
-    }
-    
-    // construtor de jogador vs maquina, o qual dessa vez irá aparecer o nivel de jogada para selecionar ( 1 para burra/fácil 2 para esperteza/dificil )
-
-    public JogoDaVelha(String simboloJogador, int nivel) {
-        this.celulas = new String[9];
-        this.simbolos = new String[2];
-        this.historico = new LinkedHashMap<>();
-        this.qtdJogadas = 0;
-        this.contraMaquina = true;
-        this.nivelIa = nivel;
+        // Seleção de modo de jogo
+        JPanel pnlModo = new JPanel();
+        ButtonGroup bgModo = new ButtonGroup();
+        rbJogador = new JRadioButton("Jogador vs Jogador", true);
+        rbMaquina = new JRadioButton("Jogador vs Máquina");
+        bgModo.add(rbJogador);
+        bgModo.add(rbMaquina);
+        pnlModo.add(rbJogador);
+        pnlModo.add(rbMaquina);
         
-        this.simbolos[0] = simboloJogador;
-        this.simbolos[1] = "M"; // aqui se representa maquina
-    }
-    
-    public boolean isContraMaquina() {
-        return contraMaquina;
-    }
-    
-    public int getJogadorAtual() {
-        return (qtdJogadas % 2 == 0) ? 1 : 2;
-    }
-    
-    public void jogaMaquina() {
-        if (nivelIa == 1) {
-            jogadaAleatoria();
-        } else {
-            jogadaEstrategica();
-        }
-    }
-    
-    private void jogadaAleatoria() {
-        ArrayList<Integer> posicoesLivres = getPosicoesDisponiveis();
-        if (!posicoesLivres.isEmpty()) {
-            int posicao = posicoesLivres.get((int)(Math.random() * posicoesLivres.size()));
-            jogaJogador(2, posicao);
-        }
-    }
-    
-    private void jogadaEstrategica() {
-        int posicao = getJogadaVencedora(2); // Tenta vencer
+        // Painel de nível (inicialmente invisível)
+        pnlNivel = new JPanel();
+        ButtonGroup bgNivel = new ButtonGroup();
+        rbNivelBaixo = new JRadioButton("Nível Fácil");
+        rbNivelAlto = new JRadioButton("Nível Difícil", true);
+        bgNivel.add(rbNivelBaixo);
+        bgNivel.add(rbNivelAlto);
+        pnlNivel.add(rbNivelBaixo);
+        pnlNivel.add(rbNivelAlto);
+        pnlNivel.setVisible(false);
         
-        if (posicao == -1) {
-            posicao = getJogadaVencedora(1); // Tenta bloquear
-        }
+        // Adiciona listeners para mostrar/esconder o painel de nível
+        rbJogador.addActionListener(e -> pnlNivel.setVisible(false));
+        rbMaquina.addActionListener(e -> pnlNivel.setVisible(true));
         
-        if (posicao == -1 && celulas[4] == null) {
-            posicao = 4; // Centro
-        }
+        // Seleção de símbolos
+        JPanel pnlSimbolos = new JPanel();
+        cbSimbolo1 = new JComboBox<>(new String[]{"X", "O"});
+        cbSimbolo2 = new JComboBox<>(new String[]{"O", "X"});
+        pnlSimbolos.add(new JLabel("Jogador 1:"));
+        pnlSimbolos.add(cbSimbolo1);
+        pnlSimbolos.add(new JLabel("Jogador 2:"));
+        pnlSimbolos.add(cbSimbolo2);
         
-        if (posicao == -1) {
-            jogadaAleatoria(); // Jogada aleatória se não encontrou estratégia
-        } else {
-            jogaJogador(2, posicao);
-        }
-    }
-    
-    public String getSimbolo(int numeroJogador) {
-        return simbolos[numeroJogador - 1];
-    }
-    
-    public int getResultado() {
-        if (qtdJogadas < 3) {
-            return -1;
-        }
+        // Botão iniciar
+        JButton btnIniciar = new JButton("Iniciar Jogo");
+        btnIniciar.addActionListener(this::iniciarJogo);
         
-        for (String resultado : ResultadoVencedor) {
-            int indice1 = Character.getNumericValue(resultado.charAt(0));
-            int indice2 = Character.getNumericValue(resultado.charAt(1));
-            int indice3 = Character.getNumericValue(resultado.charAt(2));
-            
-            String check1 = celulas[indice1];
-            if (check1 == null) continue;
-            String check2 = celulas[indice2];
-            String check3 = celulas[indice3];
-            
-            if (check1.equals(check2) && check2.equals(check3)) {
-                return check1.equals(getSimbolo(1)) ? 1 : 2;
-            }
-        }
+        // Adiciona componentes ao painel de configuração
+        pnlConfig.add(pnlModo);
+        pnlConfig.add(pnlNivel);
+        pnlConfig.add(pnlSimbolos);
+        pnlConfig.add(btnIniciar);
         
-        return qtdJogadas == 9 ? 0 : -1;
-    }
-    
-    public ArrayList<Integer> getPosicoesDisponiveis() {
-        ArrayList<Integer> posicoesLivres = new ArrayList<>();
-        for (int i = 0; i < celulas.length; i++) {
-            if (celulas[i] == null) {
-                posicoesLivres.add(i);
-            }
-        }
-        return posicoesLivres;
-    }
-    
-    public boolean terminou() {
-        return getResultado() != -1;
-    }
-    
-    public void jogaJogador(int numeroJogador, int posicao) {
-        if (posicao < 0 || posicao >= celulas.length) {
-            throw new IllegalArgumentException("Posição inválida: " + posicao);
-        }
-        if (numeroJogador < 1 || numeroJogador > 2) {
-            throw new IllegalArgumentException("Jogador inválido: " + numeroJogador);
-        }
-        if (celulas[posicao] != null) {
-            throw new IllegalArgumentException("Posição já ocupada");
-        }
-        
-        celulas[posicao] = getSimbolo(numeroJogador);
-        qtdJogadas++;
-        historico.put(posicao, getSimbolo(numeroJogador));
-    }
-    
-    private int getJogadaVencedora(int numeroJogador) {
-        String simbolo = getSimbolo(numeroJogador);
-        
-        for (String resultado : ResultadoVencedor) {
-            int[] posicoes = {
-                Character.getNumericValue(resultado.charAt(0)),
-                Character.getNumericValue(resultado.charAt(1)),
-                Character.getNumericValue(resultado.charAt(2))
-            };
-            
-            int vazias = 0;
-            int iguais = 0;
-            int posicaoVazia = -1;
-            
-            for (int pos : posicoes) {
-                if (celulas[pos] == null) {
-                    vazias++;
-                    posicaoVazia = pos;
-                } else if (celulas[pos].equals(simbolo)) {
-                    iguais++;
-                }
-            }
-            
-            if (vazias == 1 && iguais == 2) {
-                return posicaoVazia;
-            }
-        }
-        return -1;
-    }
-    
-    public String getFoto() {
-        StringBuilder sb = new StringBuilder();
+        // Painel do tabuleiro
+        JPanel pnlTabuleiro = new JPanel(new GridLayout(3, 3));
         for (int i = 0; i < 9; i++) {
-            sb.append(celulas[i] == null ? " " : celulas[i]);
-            if (i % 3 == 2 && i < 8) sb.append("\n");
-            if (i % 3 != 2) sb.append("|");
+            botoes[i] = new JButton();
+            botoes[i].setFont(new Font("Arial", Font.BOLD, 40));
+            final int pos = i;
+            botoes[i].addActionListener(e -> jogar(pos));
+            pnlTabuleiro.add(botoes[i]);
         }
-        return sb.toString();
+        
+        // Painel de informações
+        lblInfo = new JLabel("Clique em Iniciar Jogo para começar", SwingConstants.CENTER);
+        lblInfo.setFont(new Font("Arial", Font.BOLD, 14));
+        
+        // Adiciona todos os painéis à janela
+        add(pnlConfig, BorderLayout.NORTH);
+        add(pnlTabuleiro, BorderLayout.CENTER);
+        add(lblInfo, BorderLayout.SOUTH);
     }
     
-    public int getQuantidadeJogadas() {
-        return qtdJogadas;
+    private void iniciarJogo(ActionEvent e) {
+        if (rbJogador.isSelected()) {
+            jogo = new JogoDaVelha(
+                cbSimbolo1.getSelectedItem().toString(),
+                cbSimbolo2.getSelectedItem().toString()
+            );
+        } else {
+            int nivel = rbNivelAlto.isSelected() ? 2 : 1;
+            jogo = new JogoDaVelha(
+                cbSimbolo1.getSelectedItem().toString(),
+                nivel
+            );
+        }
+        
+        // Limpa o tabuleiro visual
+        for (JButton botao : botoes) {
+            botao.setText("");
+            botao.setEnabled(true);
+        }
+        
+        atualizarInterface();
+        lblInfo.setText("Jogo iniciado. " + 
+            (jogo.isContraMaquina() 
+                ? "Você (" + jogo.getSimbolo(1) + ") começa!!!" 
+                : "Jogador 1 (" + jogo.getSimbolo(1) + ") começa!!!"));
+    }
+    // aqui a logica é ao clicar em uma jogada do tabuleiro, começar o jogo, ignorando se não iniciou ou terminou
+    // também no metodo temos a virada da jogada, atualização do visual pelo atualizar interface e também a lógica do inserimento
+    // da maquina e mensagens de erro
+    private void jogar(int posicao) {
+        if (jogo == null || jogo.terminou()) return;
+        
+        try {
+            int jogadorAtual = jogo.getJogadorAtual();
+            jogo.jogaJogador(jogadorAtual, posicao);
+            atualizarInterface();
+            
+            if (!jogo.terminou() && jogo.isContraMaquina()) {
+                jogo.jogaMaquina();
+                atualizarInterface();
+            }
+            
+            verificarFimJogo();
+        } catch (IllegalArgumentException ex) {
+            lblInfo.setText(ex.getMessage());
+        }
+    }
+    
+    // esse metodo é importante para atualizar os botões com base no estado final do jogo e as mensagens correspondente
+    // ao tipo de jogo
+    
+    private void verificarFimJogo() {
+        int resultado = jogo.getResultado();
+        if (resultado == 1) {
+            lblInfo.setText("Jogador 1 venceu!");
+        } else if (resultado == 2) {
+            lblInfo.setText(jogo.isContraMaquina() 
+                ? "Máquina (" + jogo.getSimbolo(2) + ") venceu!!!!" 
+                : "Jogador 2 venceu!!!!");
+        } else if (resultado == 0) {
+            lblInfo.setText("Empate ");
+            
+        } else {
+        	// Se o jogo ainda não terminou, mostra quem joga agora
+            int proximoJogador = jogo.getJogadorAtual();
+            String simbolo = jogo.getSimbolo(proximoJogador);
+            lblInfo.setText("Vez do " + 
+                (jogo.isContraMaquina() && proximoJogador == 2 
+                    ? "Máquina (" + simbolo + ")" 
+                    : "Jogador " + proximoJogador + " (" + simbolo + ")"));
+        }
+    }
+    
+    
+    /** esse método ele atualizará os botões com base no estado atual do tabuleiro do jogo da velha, pegando pela matriz com string formada
+     * 
+    **/
+    
+    private void atualizarInterface() {
+        String[] linhas = jogo.getFoto().split("\n");
+        
+        for (int i = 0; i < 9; i++) {
+            int linha = i / 3;
+            int coluna = i % 3;
+            String valor = linhas[linha].split("\\|")[coluna].trim();
+            botoes[i].setText(valor.isEmpty() ? "" : valor);
+            botoes[i].setEnabled(valor.isEmpty() && !jogo.terminou());
+        }
+    }
+    
+    
+    // aqui esse método principal irá inicializar a aplicação, criando a joanela no Tela e exibindo ela
+    
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            TelaJogo tela = new TelaJogo();
+            tela.setVisible(true);
+        });
     }
 }
