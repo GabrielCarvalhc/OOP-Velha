@@ -1,15 +1,25 @@
-
-// Aluno: Gabriel Pereira de Carvalho 20241370012
-
-
 package Main;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 
+
+
+//Aluno: Gabriel Pereira de Carvalho 
+
+
+/** aqui temos a telajogo improtando da classe JFRAME e incializando a classe externa do jogo da velha principal
+ Inciei um vetor de 9 botoes, JLabel para informações de mensagens ao usuário, O JCombox para selecionar os simbolos dos usuarios
+O JRadio botton para escolher o modo do jogo e o nivel de dificuldade da máquina e o JPanel para mostrar o nível
+ de inteligencia da máquina ( fácil ou dificil )
+
+**/
+
 public class TelaJogo extends JFrame {
     private static final long serialVersionUID = 1L;
+    
+    
     private JogoDaVelha jogo;
     private JButton[] botoes = new JButton[9];
     private JLabel lblInfo;
@@ -126,7 +136,9 @@ public class TelaJogo extends JFrame {
                 ? "Você (" + jogo.getSimbolo(1) + ") começa!!!" 
                 : "Jogador 1 (" + jogo.getSimbolo(1) + ") começa!!!"));
     }
-    
+    // aqui a logica é ao clicar em uma jogada do tabuleiro, começar o jogo, ignorando se não iniciou ou terminou
+    // também no metodo temos a virada da jogada, atualização do visual pelo atualizar interface e também a lógica do inserimento
+    // da maquina e mensagens de erro
     private void jogar(int posicao) {
         if (jogo == null || jogo.terminou()) return;
         
@@ -146,6 +158,9 @@ public class TelaJogo extends JFrame {
         }
     }
     
+    // esse metodo é importante para atualizar os botões com base no estado final do jogo e as mensagens correspondente
+    // ao tipo de jogo
+    
     private void verificarFimJogo() {
         int resultado = jogo.getResultado();
         if (resultado == 1) {
@@ -156,7 +171,9 @@ public class TelaJogo extends JFrame {
                 : "Jogador 2 venceu!!!!");
         } else if (resultado == 0) {
             lblInfo.setText("Empate ");
+            
         } else {
+        	// Se o jogo ainda não terminou, mostra quem joga agora
             int proximoJogador = jogo.getJogadorAtual();
             String simbolo = jogo.getSimbolo(proximoJogador);
             lblInfo.setText("Vez do " + 
@@ -165,6 +182,11 @@ public class TelaJogo extends JFrame {
                     : "Jogador " + proximoJogador + " (" + simbolo + ")"));
         }
     }
+    
+    
+    /** esse método ele atualizará os botões com base no estado atual do tabuleiro do jogo da velha, pegando pela matriz com string formada
+     * 
+    **/
     
     private void atualizarInterface() {
         String[] linhas = jogo.getFoto().split("\n");
@@ -177,6 +199,9 @@ public class TelaJogo extends JFrame {
             botoes[i].setEnabled(valor.isEmpty() && !jogo.terminou());
         }
     }
+    
+    
+    // aqui esse método principal irá inicializar a aplicação, criando a joanela no Tela e exibindo ela
     
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
