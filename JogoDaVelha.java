@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
 
-// Aluno: Gabriel Pereira de Carvalho 
+// Aluno: Gabriel Pereira de Carvalho 20241370012
 
 
 /* aqui é a classe que implemeta toda a lógica principal do jogo da velha */
