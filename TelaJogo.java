@@ -6,7 +6,7 @@ import java.awt.event.ActionEvent;
 
 
 
-//Aluno: Gabriel Pereira de Carvalho 
+//Aluno: Gabriel Pereira de Carvalho 20241370012
 
 
 /** aqui temos a telajogo improtando da classe JFRAME e incializando a classe externa do jogo da velha principal
